@@ -2,12 +2,19 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/token.js';
 import prisma from '../prisma.js';
 
+declare global {
+  namespace Express {
+    interface User {
+      id: string;
+      email: string;
+      name: string;
+      [key: string]: any;
+    }
+  }
+}
+
 export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    name: string;
-  };
+  user?: Express.User;
 }
 
 /**
