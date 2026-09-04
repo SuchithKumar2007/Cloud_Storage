@@ -22,11 +22,11 @@ export interface ProcessedMediaResult {
 
 export class StorageService {
   /**
-   * Saves uploaded buffer to private owner directory and generates thumbnail if image
+   * Saves uploaded file (from Buffer or disk temp path) to private owner directory and generates thumbnail if image
    */
   static async saveMediaFile(
     ownerId: string,
-    fileBuffer: Buffer,
+    fileSource: Buffer | string,
     fileName: string,
     mimeType: string
   ): Promise<ProcessedMediaResult> {
@@ -39,8 +39,23 @@ export class StorageService {
     const safeUniqueName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
     const targetFilePath = path.join(userMediaDir, safeUniqueName);
 
-    // Write original file into private directory
-    await fs.promises.writeFile(targetFilePath, fileBuffer);
+    let fileSize = 0;
+
+    if (typeof fileSource === 'string') {
+      // Streamed directly from disk: move or copy to private media directory
+      try {
+        await fs.promises.rename(fileSource, targetFilePath);
+      } catch {
+        await fs.promises.copyFile(fileSource, targetFilePath);
+        await fs.promises.unlink(fileSource).catch(() => {});
+      }
+      const stat = await fs.promises.stat(targetFilePath);
+      fileSize = stat.size;
+    } else {
+      // Buffer in memory
+      await fs.promises.writeFile(targetFilePath, fileSource);
+      fileSize = fileSource.length;
+    }
 
     let width: number | null = null;
     let height: number | null = null;
@@ -49,14 +64,15 @@ export class StorageService {
     // Process image thumbnails
     if (mimeType.startsWith('image/')) {
       try {
-        const metadata = await sharp(fileBuffer).metadata();
+        const imageInput = typeof fileSource === 'string' ? targetFilePath : fileSource;
+        const metadata = await sharp(imageInput).metadata();
         width = metadata.width || null;
         height = metadata.height || null;
 
         const thumbName = `thumb_${path.parse(safeUniqueName).name}.webp`;
         const thumbFilePath = path.join(userThumbDir, thumbName);
 
-        await sharp(fileBuffer)
+        await sharp(imageInput)
           .resize(480, 480, { fit: 'cover', position: 'center' })
           .webp({ quality: 80 })
           .toFile(thumbFilePath);
@@ -74,7 +90,7 @@ export class StorageService {
       thumbnailPath,
       width,
       height,
-      fileSize: fileBuffer.length
+      fileSize
     };
   }
 

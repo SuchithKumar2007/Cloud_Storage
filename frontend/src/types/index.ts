@@ -63,10 +63,12 @@ export interface StorageStats {
   percentageUsed: number;
   photosBytes: number;
   videosBytes: number;
+  audioBytes?: number;
   otherBytes: number;
   totalFiles: number;
   totalPhotos: number;
   totalVideos: number;
+  totalAudio?: number;
   formattedUsed: string;
   formattedLimit: string;
   formattedRemaining: string;

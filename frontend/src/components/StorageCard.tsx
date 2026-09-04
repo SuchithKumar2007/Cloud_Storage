@@ -3,6 +3,7 @@ import {
   HardDrive,
   Image,
   Video,
+  Music,
   File,
   CheckCircle2,
   RefreshCw,
@@ -43,10 +44,12 @@ export const StorageCard: React.FC<StorageCardProps> = ({ storage, onRefresh }) 
 
   const photosBytes = storage?.photosBytes || 0;
   const videosBytes = storage?.videosBytes || 0;
+  const audioBytes = storage?.audioBytes || 0;
   const otherBytes = storage?.otherBytes || 0;
 
   const photosPct = limit > 0 ? (photosBytes / limit) * 100 : 0;
   const videosPct = limit > 0 ? (videosBytes / limit) * 100 : 0;
+  const audioPct = limit > 0 ? (audioBytes / limit) * 100 : 0;
   const otherPct = limit > 0 ? (otherBytes / limit) * 100 : 0;
 
   return (
@@ -115,14 +118,19 @@ export const StorageCard: React.FC<StorageCardProps> = ({ storage, onRefresh }) 
               title={`Videos: ${formatBytes(videosBytes)}`}
             />
             <div
-              className="bg-purple-400 h-full rounded-r-full transition-all duration-500"
+              className="bg-purple-400 h-full transition-all duration-500"
+              style={{ width: `${Math.max(audioPct, audioBytes > 0 ? 1 : 0)}%` }}
+              title={`Music & Audio: ${formatBytes(audioBytes)}`}
+            />
+            <div
+              className="bg-emerald-400 h-full rounded-r-full transition-all duration-500"
               style={{ width: `${Math.max(otherPct, otherBytes > 0 ? 1 : 0)}%` }}
               title={`Other: ${formatBytes(otherBytes)}`}
             />
           </div>
 
           <div className="flex flex-wrap items-center justify-between text-xs text-brand-100 font-medium pt-1">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-sky-400" />
                 Photos ({formatBytes(photosBytes)})
@@ -131,6 +139,10 @@ export const StorageCard: React.FC<StorageCardProps> = ({ storage, onRefresh }) 
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                 Videos ({formatBytes(videosBytes)})
               </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-400" />
+                Audio ({formatBytes(audioBytes)})
+              </span>
             </div>
             <span>{storage?.formattedRemaining || '5 TB'} remaining</span>
           </div>
@@ -138,14 +150,14 @@ export const StorageCard: React.FC<StorageCardProps> = ({ storage, onRefresh }) 
       </div>
 
       {/* Breakdown Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-[#121824] border border-gray-200 dark:border-[#26334D] p-5 rounded-3xl shadow-sm flex items-center gap-4">
           <div className="p-3 bg-sky-50 dark:bg-sky-950/40 text-sky-500 rounded-2xl">
             <Image className="w-6 h-6" />
           </div>
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-              Total Photos
+              Photos
             </p>
             <p className="text-xl font-extrabold text-gray-900 dark:text-white">
               {storage?.totalPhotos || 0}
@@ -162,13 +174,30 @@ export const StorageCard: React.FC<StorageCardProps> = ({ storage, onRefresh }) 
           </div>
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-              Total Videos
+              Videos (No Limit)
             </p>
             <p className="text-xl font-extrabold text-gray-900 dark:text-white">
               {storage?.totalVideos || 0}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {formatBytes(videosBytes)}
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-[#121824] border border-gray-200 dark:border-[#26334D] p-5 rounded-3xl shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-purple-50 dark:bg-purple-950/40 text-purple-500 rounded-2xl">
+            <Music className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+              Music & Audio
+            </p>
+            <p className="text-xl font-extrabold text-gray-900 dark:text-white">
+              {storage?.totalAudio || 0}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {formatBytes(audioBytes)}
             </p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Heart, Check, Trash2, Archive, Share2, Download } from 'lucide-react';
+import { Play, Heart, Check, Trash2, Archive, Share2, Download, Music } from 'lucide-react';
 import { MediaItem } from '../types';
 import { formatDuration } from '../utils/formatters';
 
@@ -22,6 +22,10 @@ export const MediaCard: React.FC<MediaCardProps> = ({
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const isVideo = media.mimeType.startsWith('video/');
+  const isAudio = media.mimeType.startsWith('audio/') || 
+    media.originalName.toLowerCase().endsWith('.mp3') ||
+    media.originalName.toLowerCase().endsWith('.wav') ||
+    media.originalName.toLowerCase().endsWith('.m4a');
 
   return (
     <div
@@ -32,16 +36,38 @@ export const MediaCard: React.FC<MediaCardProps> = ({
           : 'border-gray-200/60 dark:border-[#26334D]/60 hover:border-brand-500/50 hover:shadow-lg'
       }`}
     >
-      {/* Thumbnail */}
-      <img
-        src={media.thumbnailUrl || media.streamUrl}
-        alt={media.originalName}
-        loading="lazy"
-        onLoad={() => setImageLoaded(true)}
-        className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${
-          imageLoaded ? 'opacity-100' : 'opacity-0'
-        }`}
-      />
+      {/* Thumbnail or Audio Music Card */}
+      {isAudio ? (
+        <div className="w-full h-full bg-gradient-to-br from-indigo-950 via-purple-900 to-[#121824] flex flex-col items-center justify-center p-4 text-center select-none">
+          <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center mb-2 shadow-inner group-hover:scale-110 group-hover:bg-purple-500/20 transition-all border border-purple-500/20">
+            <Music className="w-7 h-7 text-purple-300 group-hover:text-purple-200" />
+          </div>
+          <p className="text-xs font-bold text-white truncate max-w-full px-1">
+            {media.originalName}
+          </p>
+          <span className="text-[10px] font-semibold text-purple-300/80 mt-1 uppercase tracking-wider">
+            Audio Track
+          </span>
+        </div>
+      ) : (
+        <img
+          src={media.thumbnailUrl || media.streamUrl}
+          alt={media.originalName}
+          loading="lazy"
+          onLoad={() => setImageLoaded(true)}
+          className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+      )}
+
+      {/* Audio Badge */}
+      {isAudio && (
+        <div className="absolute bottom-2.5 left-2.5 px-2 py-1 bg-purple-950/80 backdrop-blur-md rounded-lg flex items-center gap-1.5 text-purple-200 text-[11px] font-semibold z-10 border border-purple-500/30 shadow-sm">
+          <Music className="w-3 h-3" />
+          <span>MP3</span>
+        </div>
+      )}
 
       {/* Video Badge */}
       {isVideo && (

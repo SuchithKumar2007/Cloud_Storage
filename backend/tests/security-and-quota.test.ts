@@ -167,7 +167,46 @@ async function runTests() {
     if (!restoredPhotos.items.some(i => i.id === mediaAId)) throw new Error('Restored item should appear in photos');
     console.log('  ✓ Item restored back to gallery');
 
-    // 10. Clean up test records
+    // 9. Test MP3 Audio Upload and Audio View Filtering
+    console.log('\n[TEST 9] Testing MP3 Audio Upload and Audio View Filtering...');
+    const mockAudioBuffer = Buffer.from('ID3-mock-mp3-audio-track-content-sample-2026');
+    const mockAudioFile: any = {
+      buffer: mockAudioBuffer,
+      originalname: 'favorite_song.mp3',
+      mimetype: 'audio/mpeg',
+      size: mockAudioBuffer.length
+    };
+
+    const audioUploadRes = await MediaService.uploadMedia(userAData.user.id, mockAudioFile);
+    if (!audioUploadRes.media) throw new Error('MP3 audio upload failed');
+    console.log('  ✓ MP3 audio uploaded with mimeType:', audioUploadRes.media.mimeType);
+
+    const audioList = await MediaService.listMedia(userAData.user.id, { view: 'audio' });
+    if (!audioList.items.some(i => i.id === audioUploadRes.media.id)) {
+      throw new Error('Uploaded MP3 not found in view: audio list');
+    }
+    console.log('  ✓ MP3 audio correctly filtered in view: audio list');
+
+    // 10. Test MP4 Video (No per-file size limitation)
+    console.log('\n[TEST 10] Testing MP4 Video Upload (No per-file size limitation)...');
+    // Test that multi-gigabyte files (e.g. 5 GB, 20 GB) are permitted within total 5 TB quota
+    const multiGigCheck = await StorageQuotaService.checkUploadAllowed(
+      userAData.user.id,
+      25 * 1024 * 1024 * 1024 // 25 GB MP4 movie file
+    );
+    if (!multiGigCheck.allowed) {
+      throw new Error('A 25 GB MP4 file should be allowed within the 5 TB quota!');
+    }
+    console.log('  ✓ 25 GB single MP4 file allowed without artificial per-file limit');
+
+    // Check stats breakdown includes audio
+    const statsWithAudio = await StorageQuotaService.getUsageStats(userAData.user.id);
+    if (statsWithAudio.totalAudio < 1 || statsWithAudio.audioBytes < mockAudioBuffer.length) {
+      throw new Error('Audio stats breakdown did not record MP3 audio track');
+    }
+    console.log(`  ✓ Storage stats breakdown correctly registered audio: ${statsWithAudio.totalAudio} track(s), ${statsWithAudio.audioBytes} bytes`);
+
+    // 11. Clean up test records
     await prisma.user.deleteMany({
       where: { email: { in: ['usera@test.com', 'userb@test.com'] } }
     });

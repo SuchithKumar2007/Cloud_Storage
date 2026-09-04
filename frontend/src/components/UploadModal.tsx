@@ -5,6 +5,8 @@ import {
   X,
   FileImage,
   FileVideo,
+  FileAudio,
+  Music,
   CheckCircle2,
   AlertCircle,
   RefreshCw,
@@ -104,7 +106,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     onDrop,
     accept: {
       'image/*': ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.heic'],
-      'video/*': ['.mp4', '.mov', '.webm', '.avi']
+      'video/*': ['.mp4', '.mov', '.webm', '.avi'],
+      'audio/*': ['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac']
     }
   });
 
@@ -165,10 +168,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               <UploadCloud className="w-7 h-7" />
             </div>
             <p className="font-semibold text-sm text-gray-900 dark:text-white mb-1">
-              Drag & Drop Photos and Videos Here
+              Drag & Drop Photos, Videos & MP3 Music Here
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-              Supports JPG, PNG, WEBP, GIF, MP4, MOV, WEBM (Up to 2 GB per file)
+              JPG, PNG, WEBP, MP3, WAV, MP4 & MOV • No per-file limit on MP4 files (Up to 5 TB total storage)
             </p>
             <button
               type="button"
@@ -200,6 +203,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
                 {queue.map(item => {
                   const isImage = item.file.type.startsWith('image/');
+                  const isAudio = item.file.type.startsWith('audio/') || 
+                    item.file.name.toLowerCase().endsWith('.mp3') || 
+                    item.file.name.toLowerCase().endsWith('.wav') ||
+                    item.file.name.toLowerCase().endsWith('.m4a');
                   return (
                     <div
                       key={item.id}
@@ -207,9 +214,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="p-2 rounded-xl bg-white dark:bg-[#121824] text-brand-500 shrink-0">
+                          <div className={`p-2 rounded-xl bg-white dark:bg-[#121824] shrink-0 ${
+                            isAudio ? 'text-purple-500' : 'text-brand-500'
+                          }`}>
                             {isImage ? (
                               <FileImage className="w-4 h-4" />
+                            ) : isAudio ? (
+                              <FileAudio className="w-4 h-4" />
                             ) : (
                               <FileVideo className="w-4 h-4" />
                             )}

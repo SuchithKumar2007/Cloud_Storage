@@ -306,9 +306,39 @@ export class MediaController {
         return;
       }
 
+      const stat = await fs.promises.stat(filePath);
+      const fileSize = stat.size;
+      const range = req.headers.range;
+
       res.setHeader('Content-Type', media.mimeType);
+      res.setHeader('Accept-Ranges', 'bytes');
       res.setHeader('Cache-Control', 'private, max-age=86400');
-      fs.createReadStream(filePath).pipe(res);
+
+      if (range) {
+        const parts = range.replace(/bytes=/, '').split('-');
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+        if (start >= fileSize || end >= fileSize) {
+          res.status(416).setHeader('Content-Range', `bytes */${fileSize}`).end();
+          return;
+        }
+
+        const chunkSize = end - start + 1;
+        const fileStream = fs.createReadStream(filePath, { start, end });
+
+        res.writeHead(206, {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunkSize,
+          'Content-Type': media.mimeType
+        });
+
+        fileStream.pipe(res);
+      } else {
+        res.setHeader('Content-Length', fileSize);
+        fs.createReadStream(filePath).pipe(res);
+      }
     } catch (err) {
       res.status(500).send('Error streaming media.');
     }

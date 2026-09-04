@@ -17,6 +17,15 @@ export function formatDuration(seconds?: number | null): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+export function formatDate(dateString: string): string {
+  try {
+    const date = parseISO(dateString);
+    return format(date, 'MMM d, yyyy');
+  } catch {
+    return dateString;
+  }
+}
+
 export function formatDateLabel(dateString: string): string {
   try {
     const date = parseISO(dateString);

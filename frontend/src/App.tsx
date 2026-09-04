@@ -12,6 +12,7 @@ import { MultiSelectBar } from './components/MultiSelectBar';
 import { UploadModal } from './components/UploadModal';
 import { PhotoViewer } from './components/PhotoViewer';
 import { VideoPlayer } from './components/VideoPlayer';
+import { AudioPlayer } from './components/AudioPlayer';
 import { ShareModal } from './components/ShareModal';
 import { CreateAlbumModal } from './components/CreateAlbumModal';
 import { AddToAlbumModal } from './components/AddToAlbumModal';
@@ -23,6 +24,7 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { PhotosPage } from './pages/PhotosPage';
 import { VideosPage } from './pages/VideosPage';
+import { AudioPage } from './pages/AudioPage';
 import { AlbumsPage } from './pages/AlbumsPage';
 import { AlbumDetailPage } from './pages/AlbumDetailPage';
 import { FavoritesPage } from './pages/FavoritesPage';
@@ -232,6 +234,10 @@ export const App: React.FC = () => {
   };
 
   const isVideoActive = activeMedia?.mimeType?.startsWith('video/');
+  const isAudioActive = activeMedia?.mimeType?.startsWith('audio/') || 
+    activeMedia?.originalName?.toLowerCase().endsWith('.mp3') || 
+    activeMedia?.originalName?.toLowerCase().endsWith('.wav') ||
+    activeMedia?.originalName?.toLowerCase().endsWith('.m4a');
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-[#0B0F17] text-gray-900 dark:text-gray-100 overflow-hidden font-sans transition-colors">
@@ -277,6 +283,17 @@ export const App: React.FC = () => {
             />
           ) : currentTab === 'videos' ? (
             <VideosPage
+              searchQuery={searchQuery}
+              selectedIds={selectedIds}
+              onToggleSelect={handleToggleSelect}
+              onSelectGroup={handleSelectGroup}
+              onClickMedia={handleClickMedia}
+              onOpenUpload={() => setIsUploadOpen(true)}
+              onFavorite={handleFavoriteToggle}
+              reloadTrigger={reloadTrigger}
+            />
+          ) : currentTab === 'audio' ? (
+            <AudioPage
               searchQuery={searchQuery}
               selectedIds={selectedIds}
               onToggleSelect={handleToggleSelect}
@@ -358,7 +375,7 @@ export const App: React.FC = () => {
       />
 
       {/* Fullscreen Photo Viewer */}
-      {activeMedia && !isVideoActive && (
+      {activeMedia && !isVideoActive && !isAudioActive && (
         <PhotoViewer
           media={activeMedia}
           mediaList={currentMediaList}
@@ -373,6 +390,17 @@ export const App: React.FC = () => {
       {/* Fullscreen Video Player */}
       {activeMedia && isVideoActive && (
         <VideoPlayer
+          media={activeMedia}
+          onClose={() => setActiveMedia(null)}
+          onFavorite={handleFavoriteToggle}
+          onTrash={handleTrashMedia}
+          onShare={handleOpenShareMedia}
+        />
+      )}
+
+      {/* Fullscreen Audio / Music Player */}
+      {activeMedia && isAudioActive && (
+        <AudioPlayer
           media={activeMedia}
           onClose={() => setActiveMedia(null)}
           onFavorite={handleFavoriteToggle}

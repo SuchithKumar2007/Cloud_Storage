@@ -9,10 +9,12 @@ export interface StorageUsageStats {
   percentageUsed: number;
   photosBytes: number;
   videosBytes: number;
+  audioBytes: number;
   otherBytes: number;
   totalFiles: number;
   totalPhotos: number;
   totalVideos: number;
+  totalAudio: number;
   formattedUsed: string;
   formattedLimit: string;
   formattedRemaining: string;
@@ -135,9 +137,11 @@ export class StorageQuotaService {
 
     let photosBytes = 0;
     let videosBytes = 0;
+    let audioBytes = 0;
     let otherBytes = 0;
     let totalPhotos = 0;
     let totalVideos = 0;
+    let totalAudio = 0;
 
     for (const item of media) {
       const size = Number(item.fileSize);
@@ -147,6 +151,9 @@ export class StorageQuotaService {
       } else if (item.mimeType.startsWith('video/')) {
         videosBytes += size;
         totalVideos++;
+      } else if (item.mimeType.startsWith('audio/') || item.mimeType === 'audio/mpeg' || item.mimeType === 'audio/mp3') {
+        audioBytes += size;
+        totalAudio++;
       } else {
         otherBytes += size;
       }
@@ -164,10 +171,12 @@ export class StorageQuotaService {
       percentageUsed,
       photosBytes,
       videosBytes,
+      audioBytes,
       otherBytes,
       totalFiles: media.length,
       totalPhotos,
       totalVideos,
+      totalAudio,
       formattedUsed: formatBytes(usedBytes),
       formattedLimit: formatBytes(limitBytes),
       formattedRemaining: formatBytes(remainingBytes)

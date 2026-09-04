@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, FolderArchive, Search, Share2, Menu } from 'lucide-react';
+import { Image, Video, Music, FolderArchive, Menu } from 'lucide-react';
 
 interface BottomNavigationProps {
   currentTab: string;
@@ -14,8 +14,9 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
 }) => {
   const items = [
     { id: 'photos', label: 'Photos', icon: Image },
+    { id: 'videos', label: 'Videos', icon: Video },
+    { id: 'audio', label: 'Music', icon: Music },
     { id: 'albums', label: 'Albums', icon: FolderArchive },
-    { id: 'shared', label: 'Shared', icon: Share2 },
     { id: 'more', label: 'More', icon: Menu, isMenu: true },
   ];
 

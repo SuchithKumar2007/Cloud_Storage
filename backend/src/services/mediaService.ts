@@ -3,12 +3,12 @@ import fs from 'fs';
 import archiver from 'archiver';
 import { Response } from 'express';
 import prisma from '../prisma.js';
-import { calculateBufferHash } from '../utils/hash.js';
+import { calculateBufferHash, calculateFileHash } from '../utils/hash.js';
 import { StorageQuotaService } from './storageQuotaService.js';
 import { StorageService } from './storageService.js';
 
 export interface MediaFilterOptions {
-  view?: 'photos' | 'videos' | 'favorites' | 'archive' | 'trash';
+  view?: 'photos' | 'videos' | 'audio' | 'favorites' | 'archive' | 'trash';
   albumId?: string;
   search?: string;
   page?: number;
@@ -19,14 +19,21 @@ export interface MediaFilterOptions {
 
 export class MediaService {
   /**
-   * Upload and process a new media file
+   * Upload and process a new media file (photos, videos of any size, or MP3 audio)
    */
   static async uploadMedia(
     userId: string,
     file: Express.Multer.File,
     forceDuplicate: boolean = false
   ) {
-    const fileHash = calculateBufferHash(file.buffer);
+    let fileHash: string;
+    if (file.buffer) {
+      fileHash = calculateBufferHash(file.buffer);
+    } else if (file.path) {
+      fileHash = await calculateFileHash(file.path);
+    } else {
+      fileHash = `${Date.now()}_${file.originalname}`;
+    }
 
     // 1. Duplicate Detection Check
     if (!forceDuplicate) {
@@ -39,6 +46,9 @@ export class MediaService {
       });
 
       if (existing) {
+        if (file.path && fs.existsSync(file.path)) {
+          await fs.promises.unlink(file.path).catch(() => {});
+        }
         return {
           duplicateDetected: true,
           message: 'Duplicate file detected. This memory already exists in your library.',
@@ -54,6 +64,9 @@ export class MediaService {
     // 2. Enforce 5 TB Storage Quota Check
     const quotaCheck = await StorageQuotaService.checkUploadAllowed(userId, file.size);
     if (!quotaCheck.allowed) {
+      if (file.path && fs.existsSync(file.path)) {
+        await fs.promises.unlink(file.path).catch(() => {});
+      }
       const error: any = new Error(
         "Storage limit reached. You don't have enough available storage for this upload."
       );
@@ -62,9 +75,10 @@ export class MediaService {
     }
 
     // 3. Save to Private Storage & Generate Thumbnail
+    const fileSource = file.path || file.buffer;
     const processed = await StorageService.saveMediaFile(
       userId,
-      file.buffer,
+      fileSource,
       file.originalname,
       file.mimetype
     );
@@ -143,6 +157,8 @@ export class MediaService {
           where.isFavorite = true;
         } else if (view === 'videos') {
           where.mimeType = { startsWith: 'video/' };
+        } else if (view === 'audio') {
+          where.mimeType = { startsWith: 'audio/' };
         }
       }
     }

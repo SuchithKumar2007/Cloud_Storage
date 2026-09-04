@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Image,
   Video,
+  Music,
   FolderArchive,
   Heart,
   Archive,
@@ -23,6 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
   const navItems = [
     { id: 'photos', label: 'Photos', icon: Image },
     { id: 'videos', label: 'Videos', icon: Video },
+    { id: 'audio', label: 'Music & Audio', icon: Music },
     { id: 'albums', label: 'Albums', icon: FolderArchive },
     { id: 'favorites', label: 'Favorites', icon: Heart },
     { id: 'archive', label: 'Archive', icon: Archive },
