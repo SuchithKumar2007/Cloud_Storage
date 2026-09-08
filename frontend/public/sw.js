@@ -1,8 +1,12 @@
-﻿const CACHE_NAME = 'memopix-v1';
+﻿const CACHE_NAME = 'memopix-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/icon-maskable-192.png',
+  '/icon-maskable-512.png',
   '/logo.png'
 ];
 
@@ -31,12 +35,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Bypass API calls, storage media streaming, and upload endpoints
+  // Bypass API calls, storage media streaming, and non-GET requests
   if (url.pathname.startsWith('/api') || url.pathname.startsWith('/storage') || event.request.method !== 'GET') {
     return;
   }
 
-  // Network-first with cache fallback for app navigation and assets
   event.respondWith(
     fetch(event.request)
       .then((response) => {
