@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, Plus, HardDrive, Moon, Sun } from 'lucide-react';
 import { ProfileMenu } from './ProfileMenu';
+import { InstallAppButton } from './InstallAppButton';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -57,6 +58,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           </span>
           <span className="text-gray-400">/ 5 TB</span>
         </div>
+
+        {/* Install Native App (PWA) Button */}
+        <InstallAppButton />
 
         {/* Quick Theme Toggle button */}
         <button

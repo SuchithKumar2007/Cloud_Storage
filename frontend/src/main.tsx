@@ -17,3 +17,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </ThemeProvider>
   </React.StrictMode>
 );
+
+// Register PWA Service Worker for Android, Windows, and Laptops
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((reg) => console.log('MEMOPIX PWA ServiceWorker active:', reg.scope))
+      .catch((err) => console.log('MEMOPIX ServiceWorker error:', err));
+  });
+}
