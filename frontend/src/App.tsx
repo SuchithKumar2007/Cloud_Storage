@@ -13,6 +13,7 @@ import { UploadModal } from './components/UploadModal';
 import { PhotoViewer } from './components/PhotoViewer';
 import { VideoPlayer } from './components/VideoPlayer';
 import { AudioPlayer } from './components/AudioPlayer';
+import { SplashScreen } from './components/SplashScreen';
 import { ShareModal } from './components/ShareModal';
 import { CreateAlbumModal } from './components/CreateAlbumModal';
 import { AddToAlbumModal } from './components/AddToAlbumModal';
@@ -41,6 +42,7 @@ export const App: React.FC = () => {
   const { success, error } = useToast();
 
   // Navigation & View State
+  const [showSplash, setShowSplash] = useState<boolean>(true);
   const [currentTab, setCurrentTab] = useState<string>('photos');
   const [authRoute, setAuthRoute] = useState<'login' | 'register' | 'forgot-password' | 'google-signin'>('login');
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
@@ -79,8 +81,8 @@ export const App: React.FC = () => {
     return <ResetPasswordPage onNavigate={r => setAuthRoute(r as any)} />;
   }
 
-  // Loading state
-  if (isLoading) {
+  // Loading state (only shown if splash screen has already completed)
+  if (isLoading && !showSplash) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#0B0F17] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -97,16 +99,20 @@ export const App: React.FC = () => {
 
   // Unauthenticated routes
   if (!user || !token) {
-    if (authRoute === 'google-signin') {
-      return <GoogleSignInPage onBack={() => setAuthRoute('login')} />;
-    }
-    if (authRoute === 'register') {
-      return <RegisterPage onNavigate={r => setAuthRoute(r as any)} />;
-    }
-    if (authRoute === 'forgot-password') {
-      return <ForgotPasswordPage onNavigate={r => setAuthRoute(r as any)} />;
-    }
-    return <LoginPage onNavigate={r => setAuthRoute(r as any)} />;
+    return (
+      <>
+        {showSplash && (
+          <SplashScreen 
+            isLoading={isLoading} 
+            onFinish={() => setShowSplash(false)} 
+          />
+        )}
+        {authRoute === 'google-signin' && <GoogleSignInPage onBack={() => setAuthRoute('login')} />}
+        {authRoute === 'register' && <RegisterPage onNavigate={r => setAuthRoute(r as any)} />}
+        {authRoute === 'forgot-password' && <ForgotPasswordPage onNavigate={r => setAuthRoute(r as any)} />}
+        {authRoute === 'login' && <LoginPage onNavigate={r => setAuthRoute(r as any)} />}
+      </>
+    );
   }
 
   // Multi-Selection Handlers
@@ -241,6 +247,14 @@ export const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-[#0B0F17] text-gray-900 dark:text-gray-100 overflow-hidden font-sans transition-colors">
+      {/* Splash Screen */}
+      {showSplash && (
+        <SplashScreen 
+          isLoading={isLoading} 
+          onFinish={() => setShowSplash(false)} 
+        />
+      )}
+
       {/* Sidebar Navigation (Desktop) */}
       <Sidebar currentTab={selectedAlbum ? 'albums' : currentTab} onSelectTab={handleSelectTab} />
 
