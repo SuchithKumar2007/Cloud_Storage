@@ -1,9 +1,20 @@
 import axios from 'axios';
 
-const rawBackend = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL;
-const API_BASE = rawBackend
-  ? (rawBackend.replace(/\/$/, '').endsWith('/api') ? rawBackend.replace(/\/$/, '') : `${rawBackend.replace(/\/$/, '')}/api`)
-  : '/api';
+export const getApiBase = (): string => {
+  const customUrl = typeof window !== 'undefined' ? localStorage.getItem('memopix_custom_backend_url') : null;
+  if (customUrl && customUrl.trim()) {
+    const clean = customUrl.trim().replace(/\/$/, '');
+    return clean.endsWith('/api') ? clean : `${clean}/api`;
+  }
+  const rawBackend = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL;
+  if (rawBackend && rawBackend.trim()) {
+    const clean = rawBackend.trim().replace(/\/$/, '');
+    return clean.endsWith('/api') ? clean : `${clean}/api`;
+  }
+  return '/api';
+};
+
+export const API_BASE = getApiBase();
 
 const api = axios.create({
   baseURL: API_BASE,

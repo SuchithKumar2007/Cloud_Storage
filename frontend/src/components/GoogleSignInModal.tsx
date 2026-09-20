@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, UserPlus, ShieldCheck, CheckCircle2, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { API_BASE } from '../services/api';
 
 interface GoogleSignInModalProps {
   isOpen: boolean;
@@ -42,7 +43,7 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({ isOpen, on
     setLoadingEmail(account.email);
     try {
       // Direct call to backend to generate token for Google account
-      const res = await fetch('/api/auth/google/mock?name=' + encodeURIComponent(account.name) + '&email=' + encodeURIComponent(account.email) + '&avatarUrl=' + encodeURIComponent(account.avatar || ''), {
+      const res = await fetch(`${API_BASE}/auth/google/mock?name=${encodeURIComponent(account.name)}&email=${encodeURIComponent(account.email)}&avatarUrl=${encodeURIComponent(account.avatar || '')}`, {
         redirect: 'manual'
       });
 

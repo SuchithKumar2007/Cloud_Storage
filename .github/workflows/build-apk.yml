@@ -1,0 +1,70 @@
+﻿name: Build MEMOPIX Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci || npm install
+
+      - name: Build Web Application
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Sync Capacitor Android
+        working-directory: ./frontend
+        run: npx cap sync android
+
+      - name: Set up Android SDK & Build APK
+        working-directory: ./frontend/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Prepare APK Artifact
+        run: |
+          mkdir -p build-output
+          cp frontend/android/app/build/outputs/apk/debug/app-debug.apk build-output/MEMOPIX-v1.0.0.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MEMOPIX-Android-APK
+          path: build-output/MEMOPIX-v1.0.0.apk
+          retention-days: 30
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: v1.0.0-apk
+          name: "MEMOPIX Android APK v1.0.0"
+          body: "Official Android APK release for MEMOPIX 5 TB Private Cloud Storage. Download and install on any Android phone."
+          files: build-output/MEMOPIX-v1.0.0.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

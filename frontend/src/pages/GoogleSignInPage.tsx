@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { API_BASE } from '../services/api';
 
 interface GoogleSignInPageProps {
   onBack: () => void;
@@ -42,7 +43,7 @@ export const GoogleSignInPage: React.FC<GoogleSignInPageProps> = ({ onBack }) =>
     try {
       // Call mock / real Google sign in handler
       const res = await fetch(
-        `/api/auth/google/mock?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&avatarUrl=${encodeURIComponent('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop')}`,
+        `${API_BASE}/auth/google/mock?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&avatarUrl=${encodeURIComponent('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop')}`,
         { redirect: 'manual' }
       );
 
