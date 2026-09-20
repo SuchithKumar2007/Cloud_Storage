@@ -22,20 +22,17 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Install Android SDK platform 35
+        run: |
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: 'frontend/package-lock.json'
-
-      - name: Install SDK platform 35 and build tools (using pre-installed SDK)
-        run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          # sdkmanager is pre-installed on ubuntu-latest
-          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
 
       - name: Install Frontend Dependencies
         working-directory: ./frontend
@@ -45,9 +42,13 @@ jobs:
         working-directory: ./frontend
         run: npm run build
 
-      - name: Sync Capacitor Android project
-        working-directory: ./frontend
-        run: npx cap sync android
+      - name: Copy built web assets into Android project (replaces cap sync)
+        run: |
+          rm -rf frontend/android/app/src/main/assets/public
+          mkdir -p frontend/android/app/src/main/assets/public
+          cp -r frontend/dist/. frontend/android/app/src/main/assets/public/
+          echo "Web assets copied successfully:"
+          ls frontend/android/app/src/main/assets/public/
 
       - name: Cache Gradle packages
         uses: actions/cache@v4
@@ -55,7 +56,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-${{ hashFiles('frontend/android/**/*.gradle*', 'frontend/android/**/gradle-wrapper.properties') }}
           restore-keys: |
             gradle-
 
@@ -69,11 +70,11 @@ jobs:
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
 
-      - name: Rename and stage APK
+      - name: Stage APK
         run: |
           mkdir -p build-output
           cp frontend/android/app/build/outputs/apk/debug/app-debug.apk build-output/MEMOPIX-Android-v1.0.0.apk
-          echo "APK ready:"
+          echo "APK built successfully:"
           ls -lh build-output/
 
       - name: Upload APK as Workflow Artifact
@@ -83,7 +84,7 @@ jobs:
           path: build-output/MEMOPIX-Android-v1.0.0.apk
           retention-days: 90
 
-      - name: Create GitHub Release with APK download
+      - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-latest
@@ -96,14 +97,14 @@ jobs:
             ### ⚡ How to Install:
             1. Download **`MEMOPIX-Android-v1.0.0.apk`** below
             2. On Android: Settings → Security → **Enable "Install unknown apps"** for your browser
-            3. Tap the downloaded file → **Install**
+            3. Tap the downloaded APK file → **Install**
             4. Open **MEMOPIX** from your app drawer
 
             ### 🔌 First Launch - Connect to Your Server:
             - Tap the **⚙️ gear icon** on the login screen
             - Enter your server address:
               - **Home Wi-Fi:** `http://192.168.29.61:5000`
-              - **Worldwide:** Paste your Cloudflare tunnel link
+              - **Worldwide (Mobile Data):** Paste your Cloudflare tunnel URL
             - Tap **Save & Connect** → login!
           files: build-output/MEMOPIX-Android-v1.0.0.apk
         env:
