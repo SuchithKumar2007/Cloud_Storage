@@ -4,6 +4,9 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+
+const frontendDist = path.resolve(__dirname, '../../frontend/dist');
 
 dotenv.config();
 
@@ -26,6 +29,7 @@ const PORT = process.env.PORT || 5000;
 
 // Security Middleware
 app.use(helmet({
+  contentSecurityPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
@@ -83,6 +87,17 @@ app.use('/api/albums', albumRoutes);
 app.use('/api/share', shareRoutes);
 app.use('/api/storage', storageRoutes);
 app.use('/api/user', userRoutes);
+
+// Serve static frontend files from dist
+app.use(express.static(frontendDist));
+
+// SPA Fallback: All non-API routes return index.html
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  res.sendFile(path.join(frontendDist, 'index.html'));
+});
 
 // Global Error Handler
 app.use(errorHandler);
