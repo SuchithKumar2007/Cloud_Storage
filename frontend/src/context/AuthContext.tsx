@@ -66,13 +66,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (data: any) => {
     const res = await authApi.login(data);
-    if (res.success && res.data) {
+    if (res && res.success && res.data) {
       const { user: loggedInUser, token: authToken } = res.data;
       setUser(loggedInUser);
       setToken(authToken);
       localStorage.setItem('memopix_token', authToken);
       localStorage.setItem('memopix_user', JSON.stringify(loggedInUser));
-      await refreshStorage();
+      if (res.data.storage) {
+        setStorage(res.data.storage);
+      } else {
+        await refreshStorage();
+      }
+    } else {
+      throw new Error('Login failed. Please check your credentials.');
     }
   };
 

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, ArrowRight, Server, CheckCircle2, AlertCircle, Sparkles, Settings } from 'lucide-react';
 import { PasswordInput } from '../components/PasswordInput';
 import { GoogleSignInModal } from '../components/GoogleSignInModal';
@@ -60,12 +60,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
       await login({ email: email.trim(), password, rememberMe });
       success('Welcome back to MEMOPIX!');
     } catch (err: any) {
-      if (!err.response) {
-        setErrorMsg(
-          'Cannot connect to MEMOPIX Server. If using the mobile app or APK, tap "Server Settings" below to configure your backend address.'
-        );
+      const serverMsg = err?.response?.data?.message;
+      if (serverMsg) {
+        setErrorMsg(serverMsg);
       } else {
-        setErrorMsg(err.response?.data?.message || 'Invalid email or password.');
+        setErrorMsg('Login failed. Please check your email and password.');
       }
     } finally {
       setIsLoading(false);
