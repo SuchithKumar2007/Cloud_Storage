@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { API_BASE } from '../services/api';
+import { clientVault } from '../services/clientVault';
 
 interface GoogleSignInPageProps {
   onBack: () => void;
@@ -59,11 +60,14 @@ export const GoogleSignInPage: React.FC<GoogleSignInPageProps> = ({ onBack }) =>
         await loginWithToken(token);
         success(`Welcome, ${name}! Your 5 TB MEMOPIX Cloud is ready.`);
       } else {
-        // Direct browser redirect
-        window.location.href = `/api/auth/google/mock?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`;
+        const fallback = clientVault.googleLogin(name, email);
+        await loginWithToken(fallback.data.token);
+        success(`Welcome, ${name}! Your 5 TB MEMOPIX Cloud is ready.`);
       }
     } catch {
-      window.location.href = `/api/auth/google/mock?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`;
+      const fallback = clientVault.googleLogin(name, email);
+      await loginWithToken(fallback.data.token);
+      success(`Welcome, ${name}! Your 5 TB MEMOPIX Cloud is ready.`);
     } finally {
       setIsLoading(false);
     }

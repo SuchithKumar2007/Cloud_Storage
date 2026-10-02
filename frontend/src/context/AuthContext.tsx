@@ -115,7 +115,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setStorage(null);
       localStorage.removeItem('memopix_token');
       localStorage.removeItem('memopix_user');
-      window.location.href = '/login';
     }
   };
 
